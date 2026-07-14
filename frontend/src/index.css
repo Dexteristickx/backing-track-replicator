@@ -1,0 +1,40 @@
+:root {
+  --bg-primary: #0A0A0F;
+  --bg-secondary: #12121A;
+  --bg-panel: #1A1A28;
+  --border-color: #2A2A3E;
+  
+  --accent-primary: #6C63FF;
+  --accent-secondary: #00D4FF;
+  --accent-success: #00FF94;
+  --accent-warning: #FFB800;
+  --accent-danger: #FF4757;
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #8888AA;
+  --text-muted: #44445A;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  color: var(--accent-primary);
+}

@@ -1,0 +1,118 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+.app-header {
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.bpm-display {
+  font-family: monospace;
+  font-size: 1.2rem;
+  color: var(--accent-secondary);
+  background: var(--bg-panel);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.waveform-section {
+  flex: 1;
+  background: var(--bg-panel);
+  border-radius: 8px;
+  border: 1px dashed var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-waveform {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+.controls-section {
+  display: flex;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.transport-bar, .section-markers {
+  display: flex;
+  gap: 1rem;
+}
+
+button {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+button:hover {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.app-footer {
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.status-bar {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.btn-accent {
+  background: var(--accent-success);
+  color: var(--bg-primary);
+  border-color: var(--accent-success);
+}
+
+.btn-accent:hover {
+  background: var(--accent-success);
+  filter: brightness(1.1);
+}
