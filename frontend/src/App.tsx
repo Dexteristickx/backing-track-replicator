@@ -32,13 +32,22 @@ function App() {
       setApiPort(targetPort);
 
       try {
+        setStatus('Spawning audio engine process...');
         // 2. Spawn sidecar with the port argument
         const command = Command.sidecar("bin/backend", ["--port", targetPort.toString()]);
+        
+        command.on('error', error => {
+          console.error(`Command error: "${error}"`);
+          setStatus(`Sidecar Error: ${error}`);
+        });
+
         sidecarProcess = await command.spawn();
         console.log(`Python sidecar spawned on port ${targetPort}`);
+        setStatus('Audio engine spawned. Waiting for initialization (this can take up to 60 seconds on first run)...');
 
-        // 3. Poll /health until server responds
-        let retries = 30;
+        // 3. Poll /health until server responds. 120 retries * 500ms = 60 seconds
+        let retries = 120;
+        let connected = false;
         while (retries > 0) {
           try {
             const res = await fetch(`http://127.0.0.1:${targetPort}/health`);
@@ -47,6 +56,7 @@ function App() {
               if (data.status === "healthy" || data.status === "ok") {
                 setIsBackendReady(true);
                 setStatus('Ready to load audio...');
+                connected = true;
                 break;
               }
             }
@@ -57,14 +67,14 @@ function App() {
           }
         }
 
-        if (retries === 0) {
+        if (!connected) {
           console.error("Failed to connect to backend sidecar. Timeout reached.");
-          setStatus('Backend connection failed.');
+          setStatus('Backend connection failed. Process timed out.');
         }
 
       } catch (err) {
         console.error("Failed to start sidecar:", err);
-        setStatus('Failed to start engine.');
+        setStatus(`Failed to start engine: ${err}`);
       }
     };
 
@@ -180,8 +190,9 @@ function App() {
 
   if (!isBackendReady) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "white" }}>
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", color: "white", padding: "2rem", textAlign: "center" }}>
         <h3>Loading Backing Track Replicator Engine...</h3>
+        <p style={{ marginTop: "1rem", color: "#888", fontFamily: "monospace" }}>{status}</p>
       </div>
     );
   }
