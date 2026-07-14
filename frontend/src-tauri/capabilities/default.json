@@ -8,7 +8,16 @@
   "permissions": [
     "core:default",
     "shell:default",
-    "shell:allow-spawn",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "bin/backend",
+          "sidecar": true,
+          "args": true
+        }
+      ]
+    },
     {
       "identifier": "shell:allow-execute",
       "allow": [
