@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import { TransportBar } from './components/TransportBar';
 import { StatusBar } from './components/StatusBar';
@@ -7,10 +7,14 @@ import { ExportPanel } from './components/ExportPanel';
 import { WaveformEditor } from './components/WaveformEditor';
 import WaveSurfer from 'wavesurfer.js';
 import { AnalysisData, CueInfo } from './types';
+import { Command } from "@tauri-apps/plugin-shell";
 
 function App() {
+  const [isBackendReady, setIsBackendReady] = useState(false);
+  const [apiPort, setApiPort] = useState(8000);
+  
   const [isPlaying, setIsPlaying] = useState(false);
-  const [status, setStatus] = useState('Ready to load audio...');
+  const [status, setStatus] = useState('Starting audio engine...');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
@@ -18,6 +22,62 @@ function App() {
   const [isExporting, setIsExporting] = useState(false);
   const wsRef = useRef<WaveSurfer | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let sidecarProcess: any = null;
+
+    const startSidecar = async () => {
+      // 1. Choose a highly random port to minimize collision risks
+      const targetPort = Math.floor(Math.random() * (9000 - 8001) + 8001);
+      setApiPort(targetPort);
+
+      try {
+        // 2. Spawn sidecar with the port argument
+        const command = Command.sidecar("bin/backend", ["--port", targetPort.toString()]);
+        sidecarProcess = await command.spawn();
+        console.log(`Python sidecar spawned on port ${targetPort}`);
+
+        // 3. Poll /health until server responds
+        let retries = 30;
+        while (retries > 0) {
+          try {
+            const res = await fetch(`http://127.0.0.1:${targetPort}/health`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.status === "healthy" || data.status === "ok") {
+                setIsBackendReady(true);
+                setStatus('Ready to load audio...');
+                break;
+              }
+            }
+          } catch (e) {
+            // Wait 500ms before retrying
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            retries--;
+          }
+        }
+
+        if (retries === 0) {
+          console.error("Failed to connect to backend sidecar. Timeout reached.");
+          setStatus('Backend connection failed.');
+        }
+
+      } catch (err) {
+        console.error("Failed to start sidecar:", err);
+        setStatus('Failed to start engine.');
+      }
+    };
+
+    startSidecar();
+
+    // Cleanup: Kill the child sidecar when the user exits the app window
+    return () => {
+      if (sidecarProcess) {
+        sidecarProcess.kill().catch((err: any) => console.error("Error killing sidecar:", err));
+      }
+    };
+  }, []);
+
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -38,7 +98,7 @@ function App() {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch('http://localhost:8000/analyze', {
+      const response = await fetch(`http://127.0.0.1:${apiPort}/analyze`, {
         method: 'POST',
         body: formData,
       });
@@ -70,7 +130,7 @@ function App() {
         format: format
       }));
       
-      const response = await fetch('http://localhost:8000/export', {
+      const response = await fetch(`http://127.0.0.1:${apiPort}/export`, {
         method: 'POST',
         body: formData
       });
@@ -117,6 +177,14 @@ function App() {
     wsRef.current = ws;
     setStatus('Audio loaded.');
   };
+
+  if (!isBackendReady) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "white" }}>
+        <h3>Loading Backing Track Replicator Engine...</h3>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
